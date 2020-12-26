@@ -1,53 +1,25 @@
 import React from 'react';
-import {Button, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
 import lightTheme from '../constants/theme';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 // if buld error on iOS involves MaterialCommunityIcons, see this: https://github.com/oblador/react-native-vector-icons/issues/965
+import QuickSearchStackScreen from '../screens/QuickSearchStackScreen';
 
-const Tab = createMaterialBottomTabNavigator();
+export type RootTabParamList = {
+  Home: undefined;
+  QuickSearch: undefined;
+  About: undefined;
+};
+
+const Tab = createMaterialBottomTabNavigator<RootTabParamList>();
 
 function HomeScreen() {
   return (
     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
       <Text>Home!</Text>
     </View>
-  );
-}
-
-function RecipeScreen() {
-  return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Recipe!</Text>
-    </View>
-  );
-}
-
-function QuickSearchScreen({navigation}) {
-  return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Quick Search screen</Text>
-      <Button
-        title="Go to Recipe"
-        onPress={() => navigation.navigate('Recipe')}
-      />
-    </View>
-  );
-}
-
-const QuickSearchStack = createStackNavigator();
-
-function QuickSearchStackScreen() {
-  return (
-    <QuickSearchStack.Navigator>
-      <QuickSearchStack.Screen
-        name="Quick Search"
-        component={QuickSearchScreen}
-      />
-      <QuickSearchStack.Screen name="Recipe" component={RecipeScreen} />
-    </QuickSearchStack.Navigator>
   );
 }
 
@@ -62,7 +34,7 @@ function AboutScreen() {
 const RootNavigator = () => {
   return (
     <NavigationContainer theme={lightTheme}>
-      <Tab.Navigator>
+      <Tab.Navigator initialRouteName="Home">
         <Tab.Screen
           name="Home"
           component={HomeScreen}
@@ -74,7 +46,7 @@ const RootNavigator = () => {
           }}
         />
         <Tab.Screen
-          name="Quick Search"
+          name="QuickSearch"
           component={QuickSearchStackScreen}
           options={{
             tabBarLabel: 'Quick Search',
