@@ -10,6 +10,7 @@ type QuickSearchScreenProps = MaterialBottomTabScreenProps<
   RootTabParamList,
   'QuickSearch'
 >;
+// TODO: https://reactnavigation.org/docs/typescript#combining-navigation-props
 // See: https://reactnavigation.org/docs/typescript/
 
 function RecipeScreen() {
@@ -48,6 +49,7 @@ function QuickSearchScreen({navigation}: QuickSearchScreenProps) {
             <TouchableRipple
               onPress={() => {
                 navigation.navigate('Recipe');
+                // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
               }}>
               <List.Item
                 id={recipe.id}
@@ -63,7 +65,7 @@ function QuickSearchScreen({navigation}: QuickSearchScreenProps) {
 
 type RecipeStackParamList = {
   QuickSearch: undefined;
-  Recipe: undefined;
+  Recipe: {recipeId: number};
 };
 
 const QuickSearchStack = createStackNavigator<RecipeStackParamList>();
