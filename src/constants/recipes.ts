@@ -1,4 +1,10 @@
-interface Recipe {
+export interface RecipePreview {
+    id: number
+    name: String
+    method: String[]
+}
+
+interface SampleRecipe {
     id: number
     name: string
     mainIngredient: string
@@ -6,7 +12,7 @@ interface Recipe {
     steps: string[]
 }
 
-const recipes: Recipe[] = [
+const sampleRecipes: SampleRecipe[] = [
     {
         id: 1,
         name: 'Fish & Chips',
@@ -36,5 +42,3 @@ const recipes: Recipe[] = [
         steps: ['Slice fish.']
     },
 ]
-
-export default recipes;

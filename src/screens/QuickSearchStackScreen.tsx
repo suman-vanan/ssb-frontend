@@ -1,10 +1,14 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {Searchbar, List, TouchableRipple} from 'react-native-paper';
-import recipes from '../constants/recipes';
+// import recipes from '../constants/recipes';
+import {RecipePreview} from '../constants/recipes';
 import type {RootTabParamList} from '../navigation/RootNavigator';
 import {MaterialBottomTabScreenProps} from '@react-navigation/material-bottom-tabs';
+import axios from 'axios';
+import {ScrollView} from 'react-native-gesture-handler';
+import {API_BASE_URL} from '@env';
 
 type QuickSearchScreenProps = MaterialBottomTabScreenProps<
   RootTabParamList,
@@ -24,41 +28,63 @@ function RecipeScreen() {
 function QuickSearchScreen({navigation}: QuickSearchScreenProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  const onChangeSearchTerm = (query: string) => setSearchTerm(query);
+  const [recipes, setRecipes] = useState<RecipePreview[] | undefined>(
+    undefined,
+  );
 
-  const searchedRecipes = recipes.filter((recipe) => {
-    recipe.mainIngredient.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await axios(`${API_BASE_URL}/api/recipes`);
+
+      // fixme: there's no interface for the result from calling Recipes API, as data format is still subject to change
+      const formattedResult = result.data.map((item) => {
+        const id: number = item._fields[0].properties.recipeId.low;
+        const name: String = item._fields[0].properties.name;
+        const method: String[] = item._fields[0].properties.method.split(',');
+        const recipe: RecipePreview = {name: name, method: method, id: id};
+        return recipe;
+      });
+
+      setRecipes(formattedResult);
+    };
+
+    fetchData();
+  }, []);
+
+  const onChangeSearchTerm = (query: string) => setSearchTerm(query);
 
   return (
     <View style={[styles.container]}>
       <Searchbar
-        placeholder="Search for Main Ingredient"
+        placeholder="Search for recipe name"
         onChangeText={onChangeSearchTerm}
         value={searchTerm}
         style={styles.searchbar}
       />
-      <List.Section style={styles.list}>
-        {recipes
-          .filter((recipe) =>
-            recipe.mainIngredient
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()),
-          )
-          .map((recipe) => (
-            <TouchableRipple
-              onPress={() => {
-                navigation.navigate('Recipe');
-                // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
-              }}>
-              <List.Item
-                id={recipe.id}
-                title={recipe.name}
-                description={recipe.description}
-              />
-            </TouchableRipple>
-          ))}
-      </List.Section>
+      <ScrollView>
+        {recipes && (
+          <List.Section style={styles.list}>
+            {recipes
+              .filter((recipe) =>
+                recipe.name.toLowerCase().includes(searchTerm.toLowerCase()),
+              )
+              .map((recipe: RecipePreview) => (
+                <TouchableRipple
+                  onPress={() => {
+                    navigation.navigate('Recipe');
+                    // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
+                  }}
+                  key={recipe.id}>
+                  <List.Item
+                    key={recipe.id}
+                    title={recipe.name}
+                    description={recipe.method[0]}
+                  />
+                </TouchableRipple>
+              ))}
+          </List.Section>
+        )}
+      </ScrollView>
     </View>
   );
 }
