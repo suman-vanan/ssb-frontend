@@ -10,9 +10,9 @@ import axios from 'axios';
 import {ScrollView} from 'react-native-gesture-handler';
 import {API_BASE_URL} from '@env';
 
-type QuickSearchScreenProps = MaterialBottomTabScreenProps<
+type SearchScreenProps = MaterialBottomTabScreenProps<
   RootTabParamList,
-  'QuickSearch'
+  'Search'
 >;
 // TODO: https://reactnavigation.org/docs/typescript#combining-navigation-props
 // See: https://reactnavigation.org/docs/typescript/
@@ -25,7 +25,7 @@ function RecipeScreen() {
   );
 }
 
-function QuickSearchScreen({navigation}: QuickSearchScreenProps) {
+function SearchScreen({navigation}: SearchScreenProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const [recipes, setRecipes] = useState<RecipePreview[] | undefined>(
@@ -90,21 +90,18 @@ function QuickSearchScreen({navigation}: QuickSearchScreenProps) {
 }
 
 type RecipeStackParamList = {
-  QuickSearch: undefined;
+  Search: undefined;
   Recipe: {recipeId: number};
 };
 
-const QuickSearchStack = createStackNavigator<RecipeStackParamList>();
+const SearchStack = createStackNavigator<RecipeStackParamList>();
 
-function QuickSearchStackScreen() {
+function SearchStackScreen() {
   return (
-    <QuickSearchStack.Navigator>
-      <QuickSearchStack.Screen
-        name="QuickSearch"
-        component={QuickSearchScreen}
-      />
-      <QuickSearchStack.Screen name="Recipe" component={RecipeScreen} />
-    </QuickSearchStack.Navigator>
+    <SearchStack.Navigator>
+      <SearchStack.Screen name="Search" component={SearchScreen} />
+      <SearchStack.Screen name="Recipe" component={RecipeScreen} />
+    </SearchStack.Navigator>
   );
 }
 
@@ -120,4 +117,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default QuickSearchStackScreen;
+export default SearchStackScreen;

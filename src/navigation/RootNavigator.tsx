@@ -5,11 +5,11 @@ import {createMaterialBottomTabNavigator} from '@react-navigation/material-botto
 import lightTheme from '../constants/theme';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 // if buld error on iOS involves MaterialCommunityIcons, see this: https://github.com/oblador/react-native-vector-icons/issues/965
-import QuickSearchStackScreen from '../screens/QuickSearchStackScreen';
+import SearchStackScreen from '../screens/SearchStackScreen';
 
 export type RootTabParamList = {
   Home: undefined;
-  QuickSearch: undefined;
+  Search: undefined;
   About: undefined;
 };
 
@@ -46,10 +46,10 @@ const RootNavigator = () => {
           }}
         />
         <Tab.Screen
-          name="QuickSearch"
-          component={QuickSearchStackScreen}
+          name="Search"
+          component={SearchStackScreen}
           options={{
-            tabBarLabel: 'Quick Search',
+            tabBarLabel: 'Search',
             tabBarIcon: ({color}) => (
               <MaterialCommunityIcons
                 name="text-search"
