@@ -34,14 +34,24 @@ function SearchScreen({navigation}: SearchScreenProps) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const result = await axios(`${API_BASE_URL}/api/recipes`);
+      const result = await axios(`${API_BASE_URL}/api/recipePreviews`);
 
       // fixme: there's no interface for the result from calling Recipes API, as data format is still subject to change
       const formattedResult = result.data.map((item) => {
-        const id: number = item._fields[0].properties.recipeId.low;
-        const name: String = item._fields[0].properties.name;
-        const method: String[] = item._fields[0].properties.method.split(',');
-        const recipe: RecipePreview = {name: name, method: method, id: id};
+        const id: number = item._fields[1].low;
+        const name: String = item._fields[0];
+        const mainIngredients: String[] = item._fields[3];
+        const tags: String[] = [];
+        item._fields[2].map((tagRecord) => {
+          tags.push(tagRecord.properties.name);
+        });
+
+        const recipe: RecipePreview = {
+          id: id,
+          name: name,
+          mainIngredients: mainIngredients,
+          tags: tags,
+        };
         return recipe;
       });
 
@@ -56,7 +66,7 @@ function SearchScreen({navigation}: SearchScreenProps) {
   return (
     <View style={[styles.container]}>
       <Searchbar
-        placeholder="Search for recipe name"
+        placeholder="Search for recipe name or main ingredient"
         onChangeText={onChangeSearchTerm}
         value={searchTerm}
         style={styles.searchbar}
@@ -65,8 +75,10 @@ function SearchScreen({navigation}: SearchScreenProps) {
         {recipes && (
           <List.Section style={styles.list}>
             {recipes
-              .filter((recipe) =>
-                recipe.name.toLowerCase().includes(searchTerm.toLowerCase()),
+              .filter(
+                (recipe) =>
+                  recipe.mainIngredients.includes(searchTerm.toLowerCase()) ||
+                  recipe.name.toLowerCase().includes(searchTerm.toLowerCase()),
               )
               .map((recipe: RecipePreview) => (
                 <TouchableRipple
@@ -78,7 +90,7 @@ function SearchScreen({navigation}: SearchScreenProps) {
                   <List.Item
                     key={recipe.id}
                     title={recipe.name}
-                    description={recipe.method[0]}
+                    description={recipe.mainIngredients.join(', ')}
                   />
                 </TouchableRipple>
               ))}

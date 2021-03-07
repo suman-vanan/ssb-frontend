@@ -1,7 +1,8 @@
 export interface RecipePreview {
     id: number
     name: String
-    method: String[]
+    mainIngredients: String[]
+    tags: String[]
 }
 
 interface SampleRecipe {
