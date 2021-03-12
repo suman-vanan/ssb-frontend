@@ -26,10 +26,16 @@ function RecipeScreen() {
 }
 
 function SearchScreen({navigation}: SearchScreenProps) {
-  const [searchTerm, setSearchTerm] = React.useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [recipes, setRecipes] = useState<RecipePreview[] | undefined>(
     undefined,
+  );
+
+  const searchedRecipes = recipes?.filter(
+    (recipe) =>
+      recipe.mainIngredients.includes(searchTerm.toLowerCase()) ||
+      recipe.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   useEffect(() => {
@@ -37,12 +43,12 @@ function SearchScreen({navigation}: SearchScreenProps) {
       const result = await axios(`${API_BASE_URL}/api/recipePreviews`);
 
       // fixme: there's no interface for the result from calling Recipes API, as data format is still subject to change
-      const formattedResult = result.data.map((item) => {
+      const formattedResult = result.data.map((item: any) => {
         const id: number = item._fields[1].low;
         const name: String = item._fields[0];
         const mainIngredients: String[] = item._fields[3];
         const tags: String[] = [];
-        item._fields[2].map((tagRecord) => {
+        item._fields[2].map((tagRecord: any) => {
           tags.push(tagRecord.properties.name);
         });
 
@@ -72,28 +78,22 @@ function SearchScreen({navigation}: SearchScreenProps) {
         style={styles.searchbar}
       />
       <ScrollView>
-        {recipes && (
+        {searchedRecipes && (
           <List.Section style={styles.list}>
-            {recipes
-              .filter(
-                (recipe) =>
-                  recipe.mainIngredients.includes(searchTerm.toLowerCase()) ||
-                  recipe.name.toLowerCase().includes(searchTerm.toLowerCase()),
-              )
-              .map((recipe: RecipePreview) => (
-                <TouchableRipple
-                  onPress={() => {
-                    navigation.navigate('Recipe');
-                    // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
-                  }}
-                  key={recipe.id}>
-                  <List.Item
-                    key={recipe.id}
-                    title={recipe.name}
-                    description={recipe.mainIngredients.join(', ')}
-                  />
-                </TouchableRipple>
-              ))}
+            {searchedRecipes.map((recipe: RecipePreview) => (
+              <TouchableRipple
+                onPress={() => {
+                  navigation.navigate('Recipe');
+                  // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
+                }}
+                key={recipe.id}>
+                <List.Item
+                  key={recipe.id}
+                  title={recipe.name}
+                  description={recipe.mainIngredients.join(', ')}
+                />
+              </TouchableRipple>
+            ))}
           </List.Section>
         )}
       </ScrollView>
