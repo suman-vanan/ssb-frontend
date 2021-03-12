@@ -17,15 +17,13 @@ type SearchScreenProps = MaterialBottomTabScreenProps<
 // TODO: https://reactnavigation.org/docs/typescript#combining-navigation-props
 // See: https://reactnavigation.org/docs/typescript/
 
-function RecipeScreen() {
-  return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Recipe!</Text>
-    </View>
-  );
-}
+const RecipeScreen = () => (
+  <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+    <Text>Recipe!</Text>
+  </View>
+);
 
-function SearchScreen({navigation}: SearchScreenProps) {
+const SearchScreen = ({navigation}: SearchScreenProps) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const [recipes, setRecipes] = useState<RecipePreview[] | undefined>(
@@ -99,7 +97,7 @@ function SearchScreen({navigation}: SearchScreenProps) {
       </ScrollView>
     </View>
   );
-}
+};
 
 type RecipeStackParamList = {
   Search: undefined;
@@ -108,14 +106,12 @@ type RecipeStackParamList = {
 
 const SearchStack = createStackNavigator<RecipeStackParamList>();
 
-function SearchStackScreen() {
-  return (
-    <SearchStack.Navigator>
-      <SearchStack.Screen name="Search" component={SearchScreen} />
-      <SearchStack.Screen name="Recipe" component={RecipeScreen} />
-    </SearchStack.Navigator>
-  );
-}
+const SearchStackScreen = () => (
+  <SearchStack.Navigator>
+    <SearchStack.Screen name="Search" component={SearchScreen} />
+    <SearchStack.Screen name="Recipe" component={RecipeScreen} />
+  </SearchStack.Navigator>
+);
 
 const styles = StyleSheet.create({
   container: {
