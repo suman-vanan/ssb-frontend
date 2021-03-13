@@ -1,5 +1,6 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
+import {Headline, Subheading} from 'react-native-paper';
 import {NavigationContainer} from '@react-navigation/native';
 import {createMaterialBottomTabNavigator} from '@react-navigation/material-bottom-tabs';
 import lightTheme from '../constants/theme';
@@ -10,7 +11,7 @@ import SearchStackScreen from '../screens/SearchStackScreen';
 export type RootTabParamList = {
   Home: undefined;
   Search: undefined;
-  About: undefined;
+  Discover: undefined;
 };
 
 const Tab = createMaterialBottomTabNavigator<RootTabParamList>();
@@ -18,15 +19,19 @@ const Tab = createMaterialBottomTabNavigator<RootTabParamList>();
 function HomeScreen() {
   return (
     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Home!</Text>
+      <Headline>Welcome!</Headline>
+      <Subheading>This app is under construction</Subheading>
+      <Headline>👷🏽‍♂️🚧👷🏻‍♀️</Headline>
     </View>
   );
 }
 
-function AboutScreen() {
+function DiscoverScreen() {
   return (
     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>About!</Text>
+      <Headline>Discover</Headline>
+      <Subheading>This feature is under construction</Subheading>
+      <Headline>👷🏽‍♂️🚧👷🏻‍♀️</Headline>
     </View>
   );
 }
@@ -60,10 +65,10 @@ const RootNavigator = () => {
           }}
         />
         <Tab.Screen
-          name="About"
-          component={AboutScreen}
+          name="Discover"
+          component={DiscoverScreen}
           options={{
-            tabBarLabel: 'About',
+            tabBarLabel: 'Discover',
             tabBarIcon: ({color}) => (
               <MaterialCommunityIcons
                 name="baby-face-outline"
