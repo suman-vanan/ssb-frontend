@@ -1,8 +1,8 @@
 export interface RecipePreview {
     id: number
-    name: String
-    mainIngredients: String[]
-    tags: String[]
+    name: string
+    mainIngredients: string[]
+    tags: string[]
 }
 
 interface SampleRecipe {

@@ -1,8 +1,18 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
-import {Searchbar, List, TouchableRipple} from 'react-native-paper';
-// import recipes from '../constants/recipes';
+import {
+  Searchbar,
+  List,
+  TouchableRipple,
+  Button,
+  Dialog,
+  Portal,
+  RadioButton,
+  Text,
+  Chip,
+  ActivityIndicator,
+} from 'react-native-paper';
 import {RecipePreview} from '../constants/recipes';
 import type {RootTabParamList} from '../navigation/RootNavigator';
 import {MaterialBottomTabScreenProps} from '@react-navigation/material-bottom-tabs';
@@ -24,17 +34,23 @@ const RecipeScreen = () => (
 );
 
 const SearchScreen = ({navigation}: SearchScreenProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
   const [recipes, setRecipes] = useState<RecipePreview[] | undefined>(
     undefined,
   );
+
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const [selectedTag, setSelectedTag] = useState('');
 
   const searchedRecipes = recipes?.filter(
     (recipe) =>
       recipe.mainIngredients.includes(searchTerm.toLowerCase()) ||
       recipe.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const availableTags = [
+    ...new Set(searchedRecipes?.flatMap((recipe) => recipe.tags)),
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,9 +59,9 @@ const SearchScreen = ({navigation}: SearchScreenProps) => {
       // fixme: there's no interface for the result from calling Recipes API, as data format is still subject to change
       const formattedResult = result.data.map((item: any) => {
         const id: number = item._fields[1].low;
-        const name: String = item._fields[0];
-        const mainIngredients: String[] = item._fields[3];
-        const tags: String[] = [];
+        const name: string = item._fields[0];
+        const mainIngredients: string[] = item._fields[3];
+        const tags: string[] = [];
         item._fields[2].map((tagRecord: any) => {
           tags.push(tagRecord.properties.name);
         });
@@ -65,7 +81,10 @@ const SearchScreen = ({navigation}: SearchScreenProps) => {
     fetchData();
   }, []);
 
-  const onChangeSearchTerm = (query: string) => setSearchTerm(query);
+  const onChangeSearchTerm = (query: string) => {
+    setSelectedTag('');
+    setSearchTerm(query);
+  };
 
   return (
     <View style={[styles.container]}>
@@ -75,26 +94,149 @@ const SearchScreen = ({navigation}: SearchScreenProps) => {
         value={searchTerm}
         style={styles.searchbar}
       />
-      <ScrollView>
-        {searchedRecipes && (
-          <List.Section style={styles.list}>
-            {searchedRecipes.map((recipe: RecipePreview) => (
-              <TouchableRipple
-                onPress={() => {
-                  navigation.navigate('Recipe');
-                  // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
-                }}
-                key={recipe.id}>
-                <List.Item
-                  key={recipe.id}
-                  title={recipe.name}
-                  description={recipe.mainIngredients.join(', ')}
-                />
-              </TouchableRipple>
-            ))}
-          </List.Section>
-        )}
-      </ScrollView>
+      {/* <Text>Number of available tags to filter by: {availableTags.length}</Text> */}
+
+      {selectedTag.length > 0 && (
+        <View
+          style={{
+            margin: 5,
+            flexWrap: 'wrap',
+          }}>
+          <Chip mode="outlined" icon="tag">
+            {selectedTag.replace(/(^\w{1})|(\s+\w{1})/g, (letter) =>
+              letter.toUpperCase(),
+            )}
+          </Chip>
+        </View>
+      )}
+
+      {/* Nested Conditional Rendering. 
+      - Source: https://www.robinwieruch.de/conditional-rendering-react#nested-conditional-rendering-in-react 
+      - Try to avoid this for the sake of readability
+      - todo(suman-vanan): split out components, use if statements, or use HOCs
+      */}
+      {searchedRecipes ? (
+        selectedTag.length === 0 ? (
+          <>
+            <ScrollView>
+              <List.Section style={styles.list}>
+                {searchedRecipes.map((recipe: RecipePreview) => (
+                  <TouchableRipple
+                    onPress={() => {
+                      navigation.navigate('Recipe');
+                      // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
+                    }}
+                    key={recipe.id}>
+                    <List.Item
+                      key={recipe.id}
+                      title={recipe.name}
+                      description={recipe.mainIngredients.join(', ')}
+                    />
+                  </TouchableRipple>
+                ))}
+              </List.Section>
+            </ScrollView>
+            <TagFilter
+              tags={availableTags}
+              selectedTag={selectedTag}
+              onSelect={setSelectedTag}
+            />
+          </>
+        ) : (
+          <>
+            <ScrollView>
+              <List.Section style={styles.list}>
+                {searchedRecipes
+                  .filter((recipe) => recipe.tags.includes(selectedTag))
+                  .map((recipe: RecipePreview) => (
+                    <TouchableRipple
+                      onPress={() => {
+                        navigation.navigate('Recipe');
+                        // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
+                      }}
+                      key={recipe.id}>
+                      <List.Item
+                        key={recipe.id}
+                        title={recipe.name}
+                        description={recipe.mainIngredients.join(', ')}
+                      />
+                    </TouchableRipple>
+                  ))}
+              </List.Section>
+            </ScrollView>
+            <TagFilter
+              tags={availableTags}
+              selectedTag={selectedTag}
+              onSelect={setSelectedTag}
+            />
+          </>
+        )
+      ) : (
+        <ActivityIndicator
+          animating={true}
+          size="large"
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            flex: 1,
+          }}
+        />
+      )}
+    </View>
+  );
+};
+
+interface TagFilterProps {
+  tags: string[];
+  selectedTag: string;
+  onSelect: (tag: string) => void;
+}
+
+const TagFilter = ({tags, selectedTag, onSelect}: TagFilterProps) => {
+  const [visible, setVisible] = useState(false);
+
+  const showDialog = () => setVisible(true);
+
+  const hideDialog = () => setVisible(false);
+
+  return (
+    <View>
+      <Button onPress={showDialog} mode="outlined" icon="filter">
+        Filter
+      </Button>
+      <Portal>
+        <Dialog
+          visible={visible}
+          onDismiss={hideDialog}
+          style={{maxHeight: '75%'}}>
+          <Dialog.Title>Filter by Tags</Dialog.Title>
+          <Dialog.ScrollArea>
+            <ScrollView>
+              <RadioButton.Group
+                onValueChange={(newSelectedValue: string) =>
+                  onSelect(newSelectedValue)
+                }
+                value={selectedTag}>
+                {tags.map((tag: string) => (
+                  <RadioButton.Item
+                    // todo(suman-vanan): Perhaps a tagId would be a better key?
+                    key={tag}
+                    // for label, use RegEx to capitalise the first letter of each word in the string `tag`
+                    // Source: (https://www.freecodecamp.org/news/how-to-capitalize-words-in-javascript/)
+                    label={tag.replace(/(^\w{1})|(\s+\w{1})/g, (letter) =>
+                      letter.toUpperCase(),
+                    )}
+                    value={tag}
+                  />
+                ))}
+              </RadioButton.Group>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button onPress={hideDialog}>Done</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 };
