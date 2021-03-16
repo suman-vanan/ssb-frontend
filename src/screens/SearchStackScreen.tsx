@@ -37,10 +37,13 @@ const SearchScreen = ({navigation}: SearchScreenProps) => {
   const [recipes, setRecipes] = useState<RecipePreview[] | undefined>(
     undefined,
   );
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
 
   const [selectedTag, setSelectedTag] = useState('');
+  const tagIsSelected = selectedTag.length !== 0;
 
   const searchedRecipes = recipes?.filter(
     (recipe) =>
@@ -54,6 +57,7 @@ const SearchScreen = ({navigation}: SearchScreenProps) => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       const result = await axios(`${API_BASE_URL}/api/recipePreviews`);
 
       // fixme: there's no interface for the result from calling Recipes API, as data format is still subject to change
@@ -76,9 +80,14 @@ const SearchScreen = ({navigation}: SearchScreenProps) => {
       });
 
       setRecipes(formattedResult);
+      setIsLoading(false);
     };
 
-    fetchData();
+    try {
+      fetchData();
+    } catch (error) {
+      setIsError(true);
+    }
   }, []);
 
   const onChangeSearchTerm = (query: string) => {
@@ -96,7 +105,7 @@ const SearchScreen = ({navigation}: SearchScreenProps) => {
       />
       {/* <Text>Number of available tags to filter by: {availableTags.length}</Text> */}
 
-      {selectedTag.length > 0 && (
+      {tagIsSelected && (
         <View
           style={{
             margin: 5,
@@ -115,63 +124,7 @@ const SearchScreen = ({navigation}: SearchScreenProps) => {
       - Try to avoid this for the sake of readability
       - todo(suman-vanan): split out components, use if statements, or use HOCs
       */}
-      {searchedRecipes ? (
-        selectedTag.length === 0 ? (
-          <>
-            <ScrollView>
-              <List.Section style={styles.list}>
-                {searchedRecipes.map((recipe: RecipePreview) => (
-                  <TouchableRipple
-                    onPress={() => {
-                      navigation.navigate('Recipe');
-                      // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
-                    }}
-                    key={recipe.id}>
-                    <List.Item
-                      key={recipe.id}
-                      title={recipe.name}
-                      description={recipe.mainIngredients.join(', ')}
-                    />
-                  </TouchableRipple>
-                ))}
-              </List.Section>
-            </ScrollView>
-            <TagFilter
-              tags={availableTags}
-              selectedTag={selectedTag}
-              onSelect={setSelectedTag}
-            />
-          </>
-        ) : (
-          <>
-            <ScrollView>
-              <List.Section style={styles.list}>
-                {searchedRecipes
-                  .filter((recipe) => recipe.tags.includes(selectedTag))
-                  .map((recipe: RecipePreview) => (
-                    <TouchableRipple
-                      onPress={() => {
-                        navigation.navigate('Recipe');
-                        // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
-                      }}
-                      key={recipe.id}>
-                      <List.Item
-                        key={recipe.id}
-                        title={recipe.name}
-                        description={recipe.mainIngredients.join(', ')}
-                      />
-                    </TouchableRipple>
-                  ))}
-              </List.Section>
-            </ScrollView>
-            <TagFilter
-              tags={availableTags}
-              selectedTag={selectedTag}
-              onSelect={setSelectedTag}
-            />
-          </>
-        )
-      ) : (
+      {isLoading ? (
         <ActivityIndicator
           animating={true}
           size="large"
@@ -181,16 +134,71 @@ const SearchScreen = ({navigation}: SearchScreenProps) => {
             flex: 1,
           }}
         />
+      ) : (
+        <>
+          <SearchResults
+            searchedRecipes={searchedRecipes}
+            tagIsSelected={tagIsSelected}
+            selectedTag={selectedTag}
+            navigation={navigation}
+          />
+          <TagFilter
+            tags={availableTags}
+            selectedTag={selectedTag}
+            onSelect={setSelectedTag}
+          />
+        </>
       )}
     </View>
   );
 };
 
-interface TagFilterProps {
+type SearchResultsProps = {
+  searchedRecipes: RecipePreview[] | undefined;
+  tagIsSelected: boolean;
+  selectedTag: string;
+  navigation: any;
+};
+
+const SearchResults = ({
+  searchedRecipes,
+  tagIsSelected,
+  selectedTag,
+  navigation,
+}: SearchResultsProps) => {
+  if (tagIsSelected) {
+    searchedRecipes = searchedRecipes?.filter((recipe) =>
+      recipe.tags.includes(selectedTag),
+    );
+  }
+
+  return (
+    <ScrollView>
+      <List.Section style={styles.list}>
+        {searchedRecipes?.map((recipe: RecipePreview) => (
+          <TouchableRipple
+            onPress={() => {
+              navigation.navigate('Recipe');
+              // For navigation to deeply nested screens, see: https://reactnavigation.org/docs/nesting-navigators#passing-params-to-a-screen-in-a-nested-navigator
+            }}
+            key={recipe.id}>
+            <List.Item
+              key={recipe.id}
+              title={recipe.name}
+              description={recipe.mainIngredients.join(', ')}
+            />
+          </TouchableRipple>
+        ))}
+      </List.Section>
+    </ScrollView>
+  );
+};
+
+type TagFilterProps = {
   tags: string[];
   selectedTag: string;
   onSelect: (tag: string) => void;
-}
+};
 
 const TagFilter = ({tags, selectedTag, onSelect}: TagFilterProps) => {
   const [visible, setVisible] = useState(false);
